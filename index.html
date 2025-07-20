@@ -7,19 +7,86 @@
     <title>Serial Port Communication</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <h1>Serial Port Communication</h1>
 
-        <div class="connection">
+        <div class="connection-section">
             <div class="section-title">Connection</div>
             <div class="controls">
-                <button id="connect">Connect</button>
-                <button id="disconenct" disabled>Disconnect</button>
+                <button id="connectBtn">Connect</button>
+                <button id="disconenctBtn" disabled>Disconnect</button>
                 <span id="status" class="status disconnected">Disconnected</span>
             </div>
         </div>
 
+        <div class="config-section">
+            <div class="section-title">Port Configuration</div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label for="baudRate">Baud Rate</label>
+                    <select id="baudRate">
+                        <option value="9600" selected>9600</option>
+                        <option value="19200">19200</option>
+                        <option value="38400">38400</option>
+                        <option value="57600">57600</option>
+                        <option value="115200">115200</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label for="dataBits">Data Bits</label>
+                    <select id="dataBits">
+                        <option value="7">7</option>
+                        <option value="8" selected>8</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label for="stopBits">Stop Bits</label>
+                    <select id="stopBits">
+                        <option value="1" selected>1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label for="parity">Parity</label>
+                    <select id="parity">
+                        <option value="none" selected>None</option>
+                        <option value="even">Even</option>
+                        <option value="odd">Odd</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label for="bufferSize">Buffer Size (bytes)</label>
+                    <select id="bufferSize">
+                        <option value="255">255</option>
+                        <option value="512">512</option>
+                        <option value="1024" selected>1024</option>
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                        <option value="8192">8192</option>
+                        <option value="16384">16384</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label for="flowControl">Flow Control</label>
+                    <select id="flowControl">
+                        <option value="none" selected>None</option>
+                        <option value="hardware">Hardware</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="communication-section">
+            <div class="section-title">Communication</div>
+            <div class="message-input">
+                <input type="text" id="messageInput" placeholder="Enter message to send..." disabled>
+                <button id="sendBtn" disabled>Send</button>
+                <button id="clearBtn">Clear Output</button>
+            </div>
+            <div class="output" id="output">Ready to connect to a serial port...</div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
