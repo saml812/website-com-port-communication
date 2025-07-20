@@ -1,2 +1,1 @@
-# COM port web
-
+# A simple website that allows for serial communication
