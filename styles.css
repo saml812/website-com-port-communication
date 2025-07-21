@@ -1,0 +1,4 @@
+#line .sent { color: blue; }
+#line .received { color: green; }
+#line .error { color: red; font-weight: bold; }
+#line .info { color: gray; font-style: italic; }

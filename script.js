@@ -1,4 +1,3 @@
-
 let port = null;
 let reader = null;
 let writer = null;
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     status = document.getElementById("status");
 
     if (!("serial" in navigator)) {
-        output.textContent = "Web Serial API not supported on non-Chromium-based browser.";
+        appendLine("Error", "Web Serial API not supported on this browser.");
         connectBtn.disabled = true;
     }
 
@@ -38,6 +37,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+// Add a line to the output as a new DOM element
+function appendLine(prefix, message) {
+    const line = document.createElement('div');
+    line.className = `line ${prefix.toLowerCase()}`;
+    line.textContent = `${prefix}: ${message}`;
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+}
+
 async function connect() {
     try {
         port = await navigator.serial.requestPort();
@@ -58,13 +66,15 @@ async function connect() {
             flowControl: flowControl
         });
 
-        appendOutput(`Connected to serial port with configuration:\n`);
-        appendOutput(`Baud Rate: ${baudRate}, Data Bits: ${dataBits}, Stop Bits: ${stopBits}\n`);
-        appendOutput(`Parity: ${parity}, Buffer Size: ${bufferSize}, Flow Control: ${flowControl}\n\n`);
+        appendLine("Info", `Connected with Baud: ${baudRate}, DataBits: ${dataBits}, StopBits: ${stopBits}`);
+        appendLine("Info", `Parity: ${parity}, Buffer: ${bufferSize}, Flow: ${flowControl}`);
 
         const textDecoder = new TextDecoderStream();
         readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
-        reader = textDecoder.readable.getReader();
+
+        const lineStream = textDecoder.readable
+            .pipeThrough(new TransformStream(new LineBreakTransformer()));
+        reader = lineStream.getReader();
 
         const textEncoder = new TextEncoderStream();
         writableStreamClosed = textEncoder.readable.pipeTo(port.writable);
@@ -73,9 +83,8 @@ async function connect() {
         updateConnectionStatus(true);
 
         readLoop();
-
     } catch (error) {
-        appendOutput(`Connection failed: ${error.message}\n`);
+        appendLine("Error", `Connection failed: ${error.message}`);
         console.error('Connection error:', error);
         updateConnectionStatus(false);
     }
@@ -87,34 +96,27 @@ async function disconnect() {
             await reader.cancel();
             reader = null;
         }
-
         if (writer) {
             await writer.close();
             writer = null;
         }
-
         if (readableStreamClosed) {
             await readableStreamClosed.catch(() => {});
             readableStreamClosed = null;
         }
-
         if (writableStreamClosed) {
             await writableStreamClosed.catch(() => {});
             writableStreamClosed = null;
         }
-
         if (port) {
             await port.close();
             port = null;
         }
-
-        appendOutput('Disconnected from serial port.\n\n');
+        appendLine("Info", 'Disconnected from serial port.');
         updateConnectionStatus(false);
-        
     } catch (error) {
-        appendOutput(`Disconnection error: ${error.message}\n`);
+        appendLine("Error", `Disconnection error: ${error.message}`);
         console.error('Disconnection error:', error);
-
         reader = null;
         writer = null;
         port = null;
@@ -126,45 +128,35 @@ async function disconnect() {
 
 async function readLoop() {
     try {
-        while (reader) {
+        while (true) {
             const { value, done } = await reader.read();
-            if (done) {
-                break;
+            if (done) break;
+            if (value !== undefined) {
+                appendLine("Received", value);
+                console.log('Received:', value);
             }
-            appendOutput(`Received: ${value}`);
-            console.log('Received:', value);
         }
     } catch (error) {
-        if (error.name === 'NetworkError') {
-            appendOutput('Device disconnected\n');
-            updateConnectionStatus(false);
-        } else if (error.name !== 'AbortError') {
-            appendOutput(`Read error: ${error.message}\n`);
-            console.error("Read error:", error);
-        }
+        appendLine("Error", `Read error: ${error.message}`);
+        console.error("Read error:", error);
     }
 }
 
 async function sendMessage() {
     if (!writer || !port) {
-        appendOutput("Error: No active connection to send message.\n");
+        appendLine("Error", "No active connection.");
         return;
     }
-
     const message = messageInput.value;
     if (!message) return;
 
-    try {   
+    try {
         await writer.write(message + '\n');
-        appendOutput(`Sent: ${message}\n`);
+        appendLine("Sent", message);
         messageInput.value = '';
     } catch (error) {
-        appendOutput(`Send error: ${error.message}\n`);
+        appendLine("Error", `Send error: ${error.message}`);
         console.error('Send error:', error);
-        
-        if (error.name === 'NetworkError') {
-            updateConnectionStatus(false);
-        }
     }
 }
 
@@ -186,12 +178,22 @@ function updateConnectionStatus(connected) {
     }
 }
 
-function appendOutput(text) {
-    const formattedText = text.replace(/\\n/g, '\n');
-    output.textContent += formattedText;
-    output.scrollTop = output.scrollHeight;
+function clearOutput() {
+    output.innerHTML = '';
 }
 
-function clearOutput() {
-    output.textContent = '';
+// LineBreakTransformer
+class LineBreakTransformer {
+    constructor() {
+        this.container = '';
+    }
+    transform(chunk, controller) {
+        this.container += chunk;
+        const lines = this.container.split(/\r?\n/);
+        this.container = lines.pop();
+        for (const line of lines) controller.enqueue(line);
+    }
+    flush(controller) {
+        if (this.container) controller.enqueue(this.container);
+    }
 }
