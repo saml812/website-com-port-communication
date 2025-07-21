@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Serial Port Communication</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <div class="container">
         <h1>Serial Port Communication</h1>
-
+        
         <div class="connection-section">
             <div class="section-title">Connection</div>
             <div class="controls">
-                <button id="connectBtn">Connect</button>
-                <button id="disconenctBtn" disabled>Disconnect</button>
+                <button id="connectBtn">Connect to Serial Port</button>
+                <button id="disconnectBtn" disabled>Disconnect</button>
                 <span id="status" class="status disconnected">Disconnected</span>
             </div>
         </div>
@@ -88,7 +86,7 @@
             <div class="output" id="output">Ready to connect to a serial port...</div>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
-
 </html>
