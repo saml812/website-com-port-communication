@@ -37,14 +37,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Add a line to the output as a new DOM element
 function appendLine(prefix, message) {
     const line = document.createElement('div');
     line.className = `line ${prefix.toLowerCase()}`;
-    line.textContent = `${prefix}: ${message}`;
+    const icon = prefix === 'Sent' ? '➡' : prefix === 'Received' ? '⬅' : 'ℹ';
+    line.textContent = `${icon} ${prefix}: ${message}`;
     output.appendChild(line);
     output.scrollTop = output.scrollHeight;
 }
+
 
 async function connect() {
     try {
@@ -54,7 +55,7 @@ async function connect() {
         const dataBits = parseInt(document.getElementById('dataBits')?.value) || 8;
         const stopBits = parseInt(document.getElementById('stopBits')?.value) || 1;
         const parity = document.getElementById('parity')?.value || 'none';
-        const bufferSize = parseInt(document.getElementById('bufferSize')?.value) || 255;
+        const bufferSize = parseInt(document.getElementById('bufferSize')?.value) || 64;
         const flowControl = document.getElementById('flowControl')?.value || 'none';
 
         await port.open({
@@ -182,7 +183,6 @@ function clearOutput() {
     output.innerHTML = '';
 }
 
-// LineBreakTransformer
 class LineBreakTransformer {
     constructor() {
         this.container = '';
